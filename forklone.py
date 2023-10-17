@@ -1,50 +1,3 @@
-"""
-forklone.py — Fork & clone a GitHub repository
-==============================================
-
-::
-
-    forklone.py [<options>] <github-repo> [<directory>]
-
-If the user has push permissions to the given GitHub repository, the repo is
-cloned normally.  If the repository is a fork, the clone's upstream remote is
-set to point to the parent repository.
-
-If the user does not have push permissions, then the repository is forked (or a
-pre-existing fork is used), the fork is cloned, and the clone's upstream remote
-is set to point to the parent repository.
-
-A GitHub repository can be specified using the following formats::
-
-    https://github.com/$OWNER/$NAME
-    $OWNER/$NAME
-    $NAME  [for a repository owned by the authenticating user]
-
-Options
--------
-
---clone-opts OPTIONS        Pass the given options to the `git clone` command.
-                            Example: --clone-opts="--depth 1 --quiet"
-
---org ORGANIZATION          Fork the repository within the given organization
-
--U, --upstream-remote NAME  Use the given name for the remote for the parent
-                            repository [default value: "upstream"]
-
-Authentication
---------------
-
-This script requires a GitHub access token in order to run.  Specify the token
-via the ``GH_TOKEN`` or ``GITHUB_TOKEN`` environment variable (possibly in an
-``.env`` file), by storing a token with the ``gh`` or ``hub`` command, or by
-setting the ``hub.oauthtoken`` Git config option.
-"""
-
-__author__ = "John Thorvald Wodder II"
-__author_email__ = "forklone@varonathe.org"
-__license__ = "MIT"
-__url__ = "https://github.com/jwodder/forklone"
-
 from shlex import split
 import subprocess
 import sys
@@ -53,6 +6,11 @@ import click
 from ghrepo import GHRepo
 from ghtoken import GHTokenNotFound, get_ghtoken
 from github import Github, GithubException
+
+__author__ = "John Thorvald Wodder II"
+__author_email__ = "forklone@varonathe.org"
+__license__ = "MIT"
+__url__ = "https://github.com/jwodder/forklone"
 
 FORK_SLEEP = 0.1
 
@@ -82,27 +40,28 @@ FORK_SLEEP = 0.1
 @click.pass_context
 def main(ctx, repository, directory, clone_opts, org, upstream_remote):
     """
-    forklone.py — Fork & clone a GitHub repository
+    Fork & clone a GitHub repository
 
-    If the user has push permissions to the given GitHub repository, the repo
-    is cloned normally.  If the repository is a fork, the clone's upstream
-    remote is set to point to the parent repository.
+    Clones the given GitHub repository to the given directory; if no directory
+    is specified, the repository is cloned to a directory with the same name as
+    the repository.  If the authenticating user does not have push permission
+    on the repository, then the repository is forked (or a pre-existing fork is
+    used), and the fork is cloned instead.
 
-    If the user does not have push permissions, then the repository is forked
-    (or a pre-existing fork is used), the fork is cloned, and the clone's
-    upstream remote is set to point to the parent repository.
+    The GitHub repository can be specified in the form `OWNER/NAME` (or, when
+    `OWNER` is the authenticating user, just `NAME`) or as a GitHub repository
+    URL.
 
-    A GitHub repository can be specified using the following formats:
+    If the cloned repository ends up being a fork (either because `forklone`
+    forked the specified repository or because the repository was already a
+    fork), then the clone's upstream remote is set to point to the fork's
+    parent repository.
 
-    \b
-        https://github.com/$OWNER/$NAME
-        $OWNER/$NAME
-        $NAME  [for a repository owned by the authenticating user]
-
-    This script requires a GitHub access token in order to run.  Specify the
-    token via the ``GH_TOKEN`` or ``GITHUB_TOKEN`` environment variable
-    (possibly in an ``.env`` file), by storing a token with the ``gh`` or
-    ``hub`` command, or by setting the ``hub.oauthtoken`` Git config option.
+    `forklone` requires a GitHub access token with appropriate permissions in
+    order to run.  Specify the token via the `GH_TOKEN` or `GITHUB_TOKEN`
+    environment variable (possibly in an `.env` file), by storing a token with
+    the `gh` or `hub` command, or by setting the `hub.oauthtoken` Git config
+    option in your `~/.gitconfig` file.
     """
     try:
         token = get_ghtoken()

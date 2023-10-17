@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "forklone"
 version = "0.1.0"
-description = "Fork and clone a GitHub repository"
+description = "Fork & clone a GitHub repository"
 readme = "README.rst"
 requires-python = ">=3.7"
 license = "MIT"
