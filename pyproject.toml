@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "forklone"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Fork & clone a GitHub repository"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = "MIT"
 license-files = { paths = ["LICENSE"] }
 authors = [
@@ -27,6 +27,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Version Control :: Git",
     "Topic :: Utilities",
+    "Typing :: Typed",
 ]
 
 dependencies = [
@@ -37,14 +38,24 @@ dependencies = [
 ]
 
 [project.scripts]
-forklone = "forklone:main"
+forklone = "forklone.__init__:main"
 
 [project.urls]
 "Source Code" = "https://github.com/jwodder/forklone"
 "Bug Tracker" = "https://github.com/jwodder/forklone/issues"
 
 [tool.hatch.version]
-path = "forklone.py"
+path = "src/forklone/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/test",
+    "CHANGELOG.*",
+    "CONTRIBUTORS.*",
+    "setup.cfg",
+    "tox.ini",
+]
 
 [tool.hatch.envs.default]
 python = "3"

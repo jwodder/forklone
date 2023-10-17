@@ -1,3 +1,16 @@
+"""
+Fork & clone a GitHub repository
+
+The ``forklone`` command clones a given GitHub repository — unless you don't
+have push permission on the repository, in which case ``forklone`` forks it and
+clones the fork instead so you get something you can push to.
+
+Visit <https://github.com/jwodder/forklone> or run ``forklone --help`` for more
+information.
+"""
+
+from __future__ import annotations
+from pathlib import Path
 from shlex import split
 import subprocess
 import sys
@@ -5,8 +18,9 @@ import time
 import click
 from ghrepo import GHRepo
 from ghtoken import GHTokenNotFound, get_ghtoken
-from github import Github, GithubException
+from github import Auth, Github, GithubException
 
+__version__ = "0.1.0.dev1"
 __author__ = "John Thorvald Wodder II"
 __author_email__ = "forklone@varonathe.org"
 __license__ = "MIT"
@@ -18,13 +32,15 @@ FORK_SLEEP = 0.1
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option(
     "--clone-opts",
-    help="Pass the given options to the `git clone` command."
-    '  Example: --clone-opts="--depth 1 --quiet"',
+    help=(
+        "Pass the given options to the `git clone` command."
+        '  Example: --clone-opts="--depth 1 --quiet"'
+    ),
     metavar="OPTIONS",
 )
 @click.option(
     "--org",
-    help="Fork the repository within the given organization",
+    help="Create the fork within the given organization",
     metavar="ORGANIZATION",
 )
 @click.option(
@@ -36,9 +52,18 @@ FORK_SLEEP = 0.1
     show_default=True,
 )
 @click.argument("repository")
-@click.argument("directory", required=False)
-@click.pass_context
-def main(ctx, repository, directory, clone_opts, org, upstream_remote):
+@click.argument(
+    "directory",
+    type=click.Path(exists=False, file_okay=False, dir_okay=True, path_type=Path),
+    required=False,
+)
+def main(
+    repository: str,
+    directory: Path | None,
+    clone_opts: str | None,
+    org: str | None,
+    upstream_remote: str,
+) -> None:
     """
     Fork & clone a GitHub repository
 
@@ -66,11 +91,11 @@ def main(ctx, repository, directory, clone_opts, org, upstream_remote):
     try:
         token = get_ghtoken()
     except GHTokenNotFound:
-        ctx.fail(
+        raise click.UsageError(
             "GitHub token not found.  Set via GH_TOKEN, GITHUB_TOKEN, gh, hub,"
             " or hub.oauthtoken."
         )
-    gh = Github(token)
+    gh = Github(auth=Auth.Token(token))
     r = GHRepo.parse(repository, default_owner=lambda: gh.get_user().login)
     repo = gh.get_repo(str(r))
     if repo.permissions.push:
@@ -101,38 +126,37 @@ def main(ctx, repository, directory, clone_opts, org, upstream_remote):
     if clone_opts:
         clone_cmd.extend(split(clone_opts))
     clone_cmd.append(clonee.ssh_url)
-    if directory:
-        clone_cmd.append(directory)
+    if directory is not None:
+        clone_cmd.append(str(directory))
         loginfo(f"Cloning {clonee.full_name} to {directory} ...")
     else:
-        directory = clonee.name
+        directory = Path(clonee.name)
         loginfo(f"Cloning {clonee.full_name} ...")
     subprocess.run(clone_cmd, check=True)
     if upstream is not None:
         loginfo(f"Pointing {upstream_remote!r} remote to parent repo ...")
         if upstream_remote == "origin":
-            runcmd("git", "-C", directory, "remote", "rm", "origin")
+            runcmd("git", "remote", "rm", "origin", cwd=directory)
         runcmd(
             "git",
-            "-C",
-            directory,
             "remote",
             "add",
             "-f",
             upstream_remote,
             upstream.clone_url,
+            cwd=directory,
         )
 
 
-def runcmd(*args, **kwargs):
+def runcmd(*args: str, cwd: Path) -> None:
     # click.echo('+' + ' '.join(args), err=True)
-    r = subprocess.run(args, **kwargs)
+    r = subprocess.run(args, cwd=cwd)
     if r.returncode != 0:
         # Don't clutter the output with a stack trace.
         sys.exit(r.returncode)
 
 
-def loginfo(msg):
+def loginfo(msg: str) -> None:
     click.secho(msg, err=True, bold=True)
 
 
