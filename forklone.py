@@ -40,44 +40,45 @@ via the ``GH_TOKEN`` or ``GITHUB_TOKEN`` environment variable (possibly in an
 setting the ``hub.oauthtoken`` Git config option.
 """
 
-__author__       = 'John Thorvald Wodder II'
-__author_email__ = 'forklone@varonathe.org'
-__license__      = 'MIT'
-__url__          = 'https://github.com/jwodder/forklone'
+__author__ = "John Thorvald Wodder II"
+__author_email__ = "forklone@varonathe.org"
+__license__ = "MIT"
+__url__ = "https://github.com/jwodder/forklone"
 
-import os
-from   shlex  import split
+from shlex import split
 import subprocess
 import sys
 import time
 import click
-from   ghrepo import GHRepo
-from   ghtoken import GHTokenNotFound, get_ghtoken
-from   github import Github, GithubException
+from ghrepo import GHRepo
+from ghtoken import GHTokenNotFound, get_ghtoken
+from github import Github, GithubException
 
 FORK_SLEEP = 0.1
 
+
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option(
-    '--clone-opts',
-    help='Pass the given options to the `git clone` command.'
-         '  Example: --clone-opts="--depth 1 --quiet"',
-    metavar='OPTIONS',
+    "--clone-opts",
+    help="Pass the given options to the `git clone` command."
+    '  Example: --clone-opts="--depth 1 --quiet"',
+    metavar="OPTIONS",
 )
 @click.option(
-    '--org',
-    help='Fork the repository within the given organization',
-    metavar='ORGANIZATION',
+    "--org",
+    help="Fork the repository within the given organization",
+    metavar="ORGANIZATION",
 )
 @click.option(
-    '-U', '--upstream-remote',
-    default='upstream',
-    help='Use the given name for the remote for the parent repository',
-    metavar='NAME',
+    "-U",
+    "--upstream-remote",
+    default="upstream",
+    help="Use the given name for the remote for the parent repository",
+    metavar="NAME",
     show_default=True,
 )
-@click.argument('repository')
-@click.argument('directory', required=False)
+@click.argument("repository")
+@click.argument("directory", required=False)
 @click.pass_context
 def main(ctx, repository, directory, clone_opts, org, upstream_remote):
     """
@@ -151,21 +152,30 @@ def main(ctx, repository, directory, clone_opts, org, upstream_remote):
     if upstream is not None:
         loginfo(f"Pointing {upstream_remote!r} remote to parent repo ...")
         if upstream_remote == "origin":
-            runcmd('git', '-C', directory, 'remote', 'rm', 'origin')
+            runcmd("git", "-C", directory, "remote", "rm", "origin")
         runcmd(
-            'git', '-C', directory,
-            'remote', 'add', '-f', upstream_remote, upstream.clone_url,
+            "git",
+            "-C",
+            directory,
+            "remote",
+            "add",
+            "-f",
+            upstream_remote,
+            upstream.clone_url,
         )
 
+
 def runcmd(*args, **kwargs):
-    #click.echo('+' + ' '.join(args), err=True)
+    # click.echo('+' + ' '.join(args), err=True)
     r = subprocess.run(args, **kwargs)
     if r.returncode != 0:
         # Don't clutter the output with a stack trace.
         sys.exit(r.returncode)
 
+
 def loginfo(msg):
     click.secho(msg, err=True, bold=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
