@@ -37,12 +37,12 @@ Usage
 
 Clones the given GitHub repository to the given directory; if no directory is
 specified, the repository is cloned to a directory with the same name as the
-repository.  If the authenticating user does not have push permission on the
+repository.  If the authenticated user does not have push permission on the
 repository, then the repository is forked (or a pre-existing fork is used), and
 the fork is cloned instead.
 
 The GitHub repository can be specified in the form ``OWNER/NAME`` (or, when
-``OWNER`` is the authenticating user, just ``NAME``) or as a GitHub repository
+``OWNER`` is the authenticated user, just ``NAME``) or as a GitHub repository
 URL.
 
 If the cloned repository ends up being a fork (either because ``forklone``
