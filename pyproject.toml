@@ -42,7 +42,7 @@ dependencies = [
 ]
 
 [project.scripts]
-forklone = "forklone.__init__:main"
+forklone = "forklone.__main__:main"
 
 [project.urls]
 "Source Code" = "https://github.com/jwodder/forklone"
