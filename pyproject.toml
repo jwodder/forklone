@@ -38,7 +38,7 @@ dependencies = [
     "click >= 8.0",
     "ghrepo ~= 0.1",
     "ghtoken ~= 0.1",
-    "PyGithub ~= 2.0",
+    "PyGithub ~= 2.9",
 ]
 
 [project.scripts]
